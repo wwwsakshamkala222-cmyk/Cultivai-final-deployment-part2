@@ -699,6 +699,9 @@ const handleLogout = async () => {
       case "Contact us":
         scrollToSection(contactRef);
         break;
+      case "Language":
+        setActivePopup("language");  // Add this case
+      break;
       default:
         break;
     }
@@ -1192,7 +1195,7 @@ const handleLogout = async () => {
                   <p>
                     💬 Message us on 
                     <a href="https://wa.me/1234567890" target="_blank" rel="noreferrer">
-                       WhatsApp
+                      WhatsApp
                     </a>
                   </p>
                 )}
@@ -1207,6 +1210,29 @@ const handleLogout = async () => {
                       Open Gmail
                     </a>
                   </p>
+                )}
+                {activePopup === "language" && (
+                  <div className="language-popup-content">
+                    <h3> Multi-Language Support</h3>
+                    <p className="coming-soon-text">Coming Soon!</p>
+                    <p>We're working on bringing CultivAI to your preferred language.</p>
+                    <div className="language-features">
+                      <p> Available in future updates:</p>
+                      <ul>
+                        <li>Hindi</li>
+                        <li>Tamil</li>
+                        <li>Telugu</li>
+                        <li>Kannada</li>
+                        <li>Urdu</li>
+                        <li>Bengali</li>
+                        <li>Gujarati</li>
+                        <li>Punjabi</li>
+                      </ul>
+                    </div>
+                    <p className="premium-notice">
+                      🔐 Premium feature • Stay tuned for updates!
+                    </p>
+                  </div>
                 )}
               </div>
             </div>

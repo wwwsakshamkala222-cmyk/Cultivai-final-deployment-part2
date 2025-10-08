@@ -766,19 +766,36 @@ const handleLogout = async () => {
 
               if (!res.ok) throw new Error(`API request failed: ${res.status}`);
               const data = await res.json();
+              console.log("🌾 Raw prediction data:", data);
 
-              let detectedDisease = data.crop_disease || "Unknown";
-              let extraRecs = diseaseCures[detectedDisease] || [];
+              // Convert dictionary => [disease, probability]
+              const entries = Object.entries(data).filter(([k]) => k !== "error");
+
+              if (entries.length === 0) {
+                throw new Error("No prediction data received");
+              }
+
+              // Pick top prediction
+              const [disease, prob] = entries[0];
+              const confidence = `${(prob * 100).toFixed(1)}%`;
+
+              // Optional: cleanup disease name to remove plant prefix
+              const detectedDisease = disease.includes("-")
+                ? disease.split("-")[1].trim()
+                : disease;
+
+              // Find any extra recommendations
+              const extraRecs = diseaseCures[detectedDisease] || [];
 
               setAnalysis({
                 crop: detectedDisease,
-                health: data.health || "Unknown",
-                confidence: data.confidence || "N/A",
-                issues: data.issues || [],
-                recommendations: [...(data.recommendations || []), ...extraRecs],
+                health: "Detected",
+                confidence: confidence,
+                issues: [],
+                recommendations: extraRecs,
               });
             } catch (err) {
-              console.error("Error calling API:", err);
+              console.error("Error calling AI API:", err);
               setAnalysis({
                 crop: "Error",
                 health: "Error",

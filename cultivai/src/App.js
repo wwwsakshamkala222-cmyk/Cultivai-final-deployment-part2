@@ -827,7 +827,9 @@ const handleLogout = async () => {
     setQuery("");
 
     try {
-      const res = await fetch("http://localhost:3001/api/chat", {
+      const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3001";
+
+      const res = await fetch(`${API_BASE_URL}/api/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ messages: [...messages, newMessage] }),

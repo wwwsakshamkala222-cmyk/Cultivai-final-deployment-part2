@@ -15,7 +15,7 @@ app.post("/predict", async (req, res) => {
     }
 
     const response = await fetch(
-      "https://inkiponki-plant-disease-classifier.hf.space/apipredict",
+      "https://inkiponki-plant-disease-classifier.hf.space/run/predict",
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },

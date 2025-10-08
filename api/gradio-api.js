@@ -14,14 +14,14 @@ app.post("/predict", async (req, res) => {
       return res.status(400).json({ error: "Missing imageUrl" });
     }
 
-    const response = await fetch(
-      "https://inkiponki-plant-disease-classifier.hf.space/apipredict",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ image: imageUrl }), // forward image to HF Space
-      }
-    );
+        const hf = await fetch(
+        "https://inkiponki-plant-disease-classifier.hf.space/api/predict",   // ✅ correct
+        {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ image: imageUrl }),
+        }
+        );
 
     const data = await response.json();
     res.json(data);

@@ -6,7 +6,7 @@ const app = express();
 app.use(cors());
 app.use(express.json({ limit: "10mb" }));
 
-// 💡 simple proxy endpoint
+// 🪄 Proxy: forward requests to your Hugging Face Space endpoint
 app.post("/predict", async (req, res) => {
   try {
     const { imageUrl } = req.body;
@@ -14,13 +14,12 @@ app.post("/predict", async (req, res) => {
       return res.status(400).json({ error: "Missing imageUrl" });
     }
 
-    // 🔗 forward request to your Hugging Face endpoint
     const response = await fetch(
       "https://inkiponki-plant-disease-classifier.hf.space/apipredict",
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ image: imageUrl }),
+        body: JSON.stringify({ image: imageUrl }), // forward image to HF Space
       }
     );
 
@@ -33,4 +32,4 @@ app.post("/predict", async (req, res) => {
 });
 
 const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => console.log(`🚀 CultivAI API running on port ${PORT}`));
+app.listen(PORT, () => console.log(`🚀 CultivAI API (proxy) running on port ${PORT}`));

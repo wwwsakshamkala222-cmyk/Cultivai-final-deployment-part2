@@ -2,14 +2,20 @@
 
 # dependencies
 /node_modules
+/client/node_modules
 /.pnp
 .pnp.js
+
+# lock files (optional but keeps repo clean)
+package-lock.json
+client/package-lock.json
 
 # testing
 /coverage
 
 # production
 /build
+/client/build
 
 # misc
 .DS_Store

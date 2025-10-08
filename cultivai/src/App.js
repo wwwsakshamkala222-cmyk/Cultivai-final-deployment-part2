@@ -755,7 +755,7 @@ const handleLogout = async () => {
             try {
               setIsAnalyzing(true);
 
-              const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:10000";
+              const API_BASE = process.env.REACT_APPP_API_URL || "http://localhost:10000";
               console.log("🔗 Calling API at:", `${API_BASE}/predict`);
 
               const res = await fetch(`${API_BASE}/predict`, {

@@ -759,13 +759,10 @@ const handleLogout = async () => {
           formData.append("file", blob, "crop.jpg");
 
           // ✅ use your environment variable or fallback URL here:
-          const PREDICT_URL =
-            process.env.REACT_APP_PREDICT_URL ||
-            "https://huggingface.co/spaces/inkiponki/plant-disease-classifier/api/predict/";
-
-          const res = await fetch(PREDICT_URL, {
+          const res = await fetch("/api/classify", {
             method: "POST",
-            body: formData,
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ image: uploadedImage }), // base64 string
           });
 
           if (!res.ok) throw new Error("API request failed");

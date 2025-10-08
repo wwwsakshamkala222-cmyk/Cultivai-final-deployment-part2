@@ -1,35 +1,33 @@
 import express from "express";
 import fetch from "node-fetch";
-import { client } from "@gradio/client";
 import cors from "cors";
 
 const app = express();
 app.use(cors());
 app.use(express.json({ limit: "10mb" }));
 
-let gradioClient;
-
-(async () => {
-  try {
-    gradioClient = await client("inkiponki/plant-disease-classifier");
-    console.log("✅ Connected to Gradio model");
-  } catch (err) {
-    console.error("❌ Could not connect to Gradio:", err);
-  }
-})();
-
+// 💡 simple proxy endpoint
 app.post("/predict", async (req, res) => {
   try {
     const { imageUrl } = req.body;
-    if (!imageUrl) return res.status(400).json({ error: "Missing imageUrl" });
+    if (!imageUrl) {
+      return res.status(400).json({ error: "Missing imageUrl" });
+    }
 
-    const response = await fetch(imageUrl);
-    const imageBlob = await response.blob();
+    // 🔗 forward request to your Hugging Face endpoint
+    const response = await fetch(
+      "https://inkiponki-plant-disease-classifier.hf.space/apipredict",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ image: imageUrl }),
+      }
+    );
 
-    const result = await gradioClient.predict("/predict", { image: imageBlob });
-    res.json(result.data);
+    const data = await response.json();
+    res.json(data);
   } catch (err) {
-    console.error("Prediction error:", err);
+    console.error("Proxy error:", err);
     res.status(500).json({ error: "Prediction failed", details: err.message });
   }
 });

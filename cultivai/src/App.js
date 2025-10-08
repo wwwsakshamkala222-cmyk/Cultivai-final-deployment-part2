@@ -853,7 +853,7 @@ const handleLogout = async () => {
       });
 
       const data = await res.json();
-      console.log("👉 Response from backend:", data);
+      console.log("🌿 Full response data:", data);
 
       if (data.bullets) {
         setMessages((prev) => [...prev, { role: "assistant", bullets: data.bullets }]);

@@ -750,51 +750,46 @@ const handleLogout = async () => {
   };
 
         const performAnalysis = async () => {
-        if (!uploadedImage) return;
+          if (!uploadedImage) return;
 
-        try {
-          setIsAnalyzing(true);
-          const formData = new FormData();
-          const blob = await fetch(uploadedImage).then(r => r.blob());
-          formData.append("file", blob, "crop.jpg");
+          try {
+            setIsAnalyzing(true);
+            
+            const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:10000";
+            console.log("🔗 Calling API at:", `${API_BASE}/predict`);
 
-          // ✅ use your environment variable or fallback URL here:
-          const API_URL = "https://your-render-app-name.onrender.com/predict";
+            const res = await fetch(`${API_BASE}/predict`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ imageUrl: uploadedImage }),
+            });
 
-          const res = await fetch(API_URL, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              imageUrl: uploadedImage, // since API expects a URL or base64 image
-            }),
-          });
+            if (!res.ok) throw new Error(`API request failed: ${res.status}`);
+            const data = await res.json();
 
-          if (!res.ok) throw new Error("API request failed");
-          const data = await res.json();
+            let detectedDisease = data.crop_disease || "Unknown";
+            let extraRecs = diseaseCures[detectedDisease] || [];
 
-          let detectedDisease = data.crop_disease ? data.crop_disease : "Unknown";
-          let extraRecs = diseaseCures[detectedDisease] || [];
-
-          setAnalysis({
-            crop: detectedDisease,
-            health: data.health || "Unknown",
-            confidence: data.confidence || "N/A",
-            issues: data.issues || [],
-            recommendations: [...(data.recommendations || []), ...extraRecs],
-          });
-        } catch (err) {
-          console.error("Error calling AI API:", err);
-          setAnalysis({
-            crop: "Error",
-            health: "Error",
-            issues: ["Could not analyze image"],
-            recommendations: ["Try again later"],
-            confidence: "0%",
-          });
-        } finally {
-          setIsAnalyzing(false);
-        }
-      };
+            setAnalysis({
+              crop: detectedDisease,
+              health: data.health || "Unknown",
+              confidence: data.confidence || "N/A",
+              issues: data.issues || [],
+              recommendations: [...(data.recommendations || []), ...extraRecs],
+            });
+          } catch (err) {
+            console.error("Error calling AI API:", err);
+            setAnalysis({
+              crop: "Error",
+              health: "Error",
+              issues: ["Could not analyze image"],
+              recommendations: ["Try again later"],
+              confidence: "0%",
+            });
+          } finally {
+            setIsAnalyzing(false);
+          }
+        };
 
   const resetUpload = () => {
     setUploadedImage(null);

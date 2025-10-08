@@ -759,10 +759,14 @@ const handleLogout = async () => {
           formData.append("file", blob, "crop.jpg");
 
           // ✅ use your environment variable or fallback URL here:
-          const res = await fetch("/api/classify", {
+          const API_URL = "https://your-render-app-name.onrender.com/predict";
+
+          const res = await fetch(API_URL, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ image: uploadedImage }), // base64 string
+            body: JSON.stringify({
+              imageUrl: uploadedImage, // since API expects a URL or base64 image
+            }),
           });
 
           if (!res.ok) throw new Error("API request failed");

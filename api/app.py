@@ -7,7 +7,7 @@ import torchvision.transforms as transforms
 from torchvision import models
 from collections import OrderedDict
 import io
-import uvicorn # Needed to run FastAPI
+import uvicorn
 
 # --- Initialize app ---
 app = FastAPI(
@@ -16,7 +16,7 @@ app = FastAPI(
     version="1.0"
 )
 
-# Allow CORS (useful if connecting from a separate frontend application)
+# Allow CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -25,8 +25,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# --- Define class names (Cleaned for better API response readability) ---
-# This list MUST have 38 elements to match the model's output layer size
+# --- Define class names (38 classes) ---
 class_names = [
     "Apple Scab",
     "Apple Black Rot",
@@ -71,30 +70,30 @@ class_names = [
 num_classes = len(class_names)
 
 # --- Load model ---
-MODEL_PATH = "best_model.pth"
+# Define the path immediately before loading
+MODEL_PATH = "best_model.pth" 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Using device: {device}")
 
-# Load the ResNet50 model
+# Load the ResNet50 model structure
 model = models.resnet50(weights=None)
 model.fc = torch.nn.Linear(model.fc.in_features, num_classes)
 
-# Load your trained checkpoint
+# Load your trained checkpoint using the defined MODEL_PATH
 state_dict = torch.load(MODEL_PATH, map_location=device)
 # Handle DataParallel prefix if necessary
 new_state_dict = OrderedDict({k.replace("module.", ""): v for k, v in state_dict.items()})
-model.load_state_dict(new_state_dict, strict=False) # strict=False is often safer when loading from DataParallel
+model.load_state_dict(new_state_dict, strict=False)
 
-# Move to device
+# Move to device and set to evaluation mode
 model = model.to(device)
-model.eval() # Set model to evaluation mode
+model.eval()
 print("Model loaded and ready!")
 
 # --- Image preprocessing ---
 transform = transforms.Compose([
     transforms.Resize((224, 224)),
     transforms.ToTensor(),
-    # Added standard ImageNet normalization which is common for ResNet models
     transforms.Normalize(mean=[0.485, 0.456, 0.406],
                              std=[0.229, 0.224, 0.225])
 ])
@@ -120,12 +119,12 @@ async def predict(file: UploadFile = File(...)):
 
     try:
         # Apply transformation and prepare tensor for the model
-        img_tensor = transform(image).unsqueeze(0).to(device)  # add batch dim
+        img_tensor = transform(image).unsqueeze(0).to(device)
 
         with torch.no_grad():
             outputs = model(img_tensor)
             
-            # Calculate max prediction and confidence (softmax is required for confidence)
+            # Calculate max prediction and confidence
             probabilities = torch.nn.functional.softmax(outputs, dim=1)[0]
             confidence, predicted_index = torch.max(probabilities, 0)
             
@@ -142,6 +141,5 @@ async def predict(file: UploadFile = File(...)):
         return JSONResponse(content={"error": f"Inference failed: {e}"}, status_code=500)
 
 if __name__ == "__main__":
-    # To run this file, use the command: uvicorn app:app --reload
     print(">>> FastAPI server configured to start on port 8000 (usually)")
     uvicorn.run(app, host="0.0.0.0", port=8000)

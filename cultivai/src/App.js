@@ -749,64 +749,56 @@ const handleLogout = async () => {
     setShowCamera(false);
   };
 
-        const performAnalysis = async () => {
-            if (!uploadedImage) return;
+      const performAnalysis = async () => {
+  if (!uploadedImage) return;
 
-            try {
-              setIsAnalyzing(true);
+  try {
+    setIsAnalyzing(true);
 
-              const API_BASE = process.env.REACT_APP_PLANT_API_URL || "http://localhost:10000";
-              console.log("🔗 Calling API at:", `${API_BASE}/predict`);
+    // Convert base64 (from FileReader) back to blob
+    const base64Response = await fetch(uploadedImage);
+    const blob = await base64Response.blob();
+    const formData = new FormData();
+    formData.append("file", blob, "crop.jpg");
 
-              const res = await fetch(`${API_BASE}/predict`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ imageUrl: uploadedImage }),
-              });
+    // Call your Python AI model endpoint
+          const res = await fetch("http://127.0.0.1:8000/predict", {
+        method: "POST",
+        body: formData,
+      });
 
-              if (!res.ok) throw new Error(`API request failed: ${res.status}`);
-              const data = await res.json();
-              console.log("🌾 Raw prediction data:", data);
 
-              // Convert dictionary => [disease, probability]
-              const entries = Object.entries(data).filter(([k]) => k !== "error");
+    const data = await res.json();
+    console.log("AI Model Response:", data);
 
-              if (entries.length === 0) {
-                throw new Error("No prediction data received");
-              }
+    const detectedDisease = data.disease || "Unknown";
+    const confidence = data.confidence
+      ? `${(data.confidence * 100).toFixed(1)}%`
+      : "N/A";
 
-              // Pick top prediction
-              const [disease, prob] = entries[0];
-              const confidence = `${(prob * 100).toFixed(1)}%`;
+    const extraRecs = diseaseCures[detectedDisease] || [];
 
-              // Optional: cleanup disease name to remove plant prefix
-              const detectedDisease = disease.includes("-")
-                ? disease.split("-")[1].trim()
-                : disease;
+    setAnalysis({
+      crop: detectedDisease,
+      health: detectedDisease === "Healthy" ? "Healthy" : "Infected",
+      confidence: confidence,
+      issues: detectedDisease === "Healthy" ? [] : [detectedDisease],
+      recommendations: extraRecs,
+    });
+  } catch (err) {
+    console.error("Error analyzing image:", err);
+    setAnalysis({
+      crop: "Error",
+      health: "Error",
+      issues: ["Could not analyze image"],
+      recommendations: ["Try again later"],
+      confidence: "0%",
+    });
+  } finally {
+    setIsAnalyzing(false);
+  }
+};
 
-              // Find any extra recommendations
-              const extraRecs = diseaseCures[detectedDisease] || [];
-
-              setAnalysis({
-                crop: detectedDisease,
-                health: "Detected",
-                confidence: confidence,
-                issues: [],
-                recommendations: extraRecs,
-              });
-            } catch (err) {
-              console.error("Error calling AI API:", err);
-              setAnalysis({
-                crop: "Error",
-                health: "Error",
-                issues: ["Could not analyze image"],
-                recommendations: ["Try again later"],
-                confidence: "0%",
-              });
-            } finally {
-              setIsAnalyzing(false);
-            }
-          };
 
   const resetUpload = () => {
     setUploadedImage(null);

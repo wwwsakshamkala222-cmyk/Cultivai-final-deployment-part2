@@ -1,0 +1,12 @@
+# Ignore the environment secrets
+server/.env
+.env
+
+# Ignore installer and zip clutter
+git-installer.exe
+repo.zip
+
+# Ignore dependency folders
+node_modules/
+cultivai/node_modules/
+server/node_modules/
